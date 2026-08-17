@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — Kiddly</title>
+<meta name="description" content="Privacy Policy for Kiddly, an offline-first learning app for young children. Kiddly collects no personal data.">
+<style>
+  :root {
+    --bg:        #f7f5ef;
+    --surface:   #ffffff;
+    --text:      #1f1d2b;
+    --muted:     #5c5870;
+    --border:    #e4e0d6;
+    --accent:    #6b5aa0;
+    --accent-soft:#efeaf9;
+    --good:      #2f7d5d;
+    --good-soft: #e7f4ee;
+    --radius:    16px;
+    --maxw:      44rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:        #16151c;
+      --surface:   #1e1d26;
+      --text:      #eceaf3;
+      --muted:     #a5a1b5;
+      --border:    #322f3d;
+      --accent:    #b3a4e6;
+      --accent-soft:#272338;
+      --good:      #7fd3ab;
+      --good-soft: #1c2c26;
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    padding: 2.5rem 1.25rem 4rem;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+  }
+
+  main { max-width: var(--maxw); margin: 0 auto; }
+
+  header {
+    text-align: center;
+    padding-bottom: 2rem;
+    margin-bottom: 2.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo { font-size: 3rem; line-height: 1; margin-bottom: .5rem; }
+
+  h1 {
+    font-size: clamp(1.75rem, 5vw, 2.35rem);
+    line-height: 1.2;
+    margin: 0 0 .5rem;
+    letter-spacing: -0.02em;
+  }
+
+  .subtitle { color: var(--muted); margin: 0 0 1rem; font-size: 1.05rem; }
+
+  .dates {
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: .5rem 1.25rem;
+    font-size: .875rem;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: .45rem 1.1rem;
+  }
+
+  h2 {
+    font-size: 1.3rem;
+    line-height: 1.3;
+    margin: 2.75rem 0 .85rem;
+    letter-spacing: -0.01em;
+    scroll-margin-top: 1rem;
+  }
+
+  h2 .num {
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    margin-right: .5rem;
+  }
+
+  h3 { font-size: 1.05rem; margin: 1.75rem 0 .5rem; }
+
+  p { margin: 0 0 1rem; }
+
+  ul { margin: 0 0 1rem; padding-left: 1.35rem; }
+  li { margin-bottom: .5rem; }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:hover { text-decoration-thickness: 2px; }
+
+  strong { font-weight: 650; }
+
+  .callout {
+    background: var(--good-soft);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--good);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.35rem;
+    margin: 0 0 2rem;
+  }
+
+  .callout h2 {
+    margin: 0 0 .65rem;
+    font-size: 1.1rem;
+  }
+
+  .callout ul { margin-bottom: 0; }
+
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.35rem;
+    margin-bottom: 1rem;
+  }
+
+  .toc h2 {
+    margin: 0 0 .75rem;
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .09em;
+    color: var(--muted);
+  }
+
+  .toc ol {
+    margin: 0;
+    padding-left: 1.35rem;
+    columns: 2;
+    column-gap: 2rem;
+    font-size: .95rem;
+  }
+
+  .toc li { margin-bottom: .35rem; break-inside: avoid; }
+
+  @media (max-width: 34rem) {
+    .toc ol { columns: 1; }
+  }
+
+  .fill {
+    background: var(--accent-soft);
+    border-radius: 5px;
+    padding: .1em .45em;
+    font-weight: 600;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .contact {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.35rem;
+    margin-top: 1rem;
+  }
+
+  .contact p:last-child { margin-bottom: 0; }
+
+  footer {
+    margin-top: 3.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-size: .875rem;
+    color: var(--muted);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 1.5rem;
+    font-size: .95rem;
+  }
+
+  th, td {
+    text-align: left;
+    padding: .7rem .85rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  th {
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .scroll-x { overflow-x: auto; }
+
+  @media print {
+    body { background: #fff; color: #000; padding: 0; font-size: 11pt; }
+    .toc { display: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <header>
+    <div class="logo" aria-hidden="true">🎈</div>
+    <h1>Kiddly Privacy Policy</h1>
+    <p class="subtitle">An offline learning playground for young children</p>
+    <div class="dates">
+      <span><strong>Effective:</strong> 17 August 2026</span>
+      <span><strong>Last updated:</strong> 17 August 2026</span>
+    </div>
+  </header>
+
+  <div class="callout">
+    <h2>The short version</h2>
+    <ul>
+      <li><strong>Kiddly collects no personal information at all</strong> — not from children, not from parents.</li>
+      <li>The app works <strong>entirely offline</strong> and does not request internet access.</li>
+      <li>There are <strong>no ads</strong>, no analytics, no tracking, and no third-party advertising or analytics SDKs.</li>
+      <li>There are <strong>no in-app purchases</strong>, no accounts, no logins, and no external links.</li>
+      <li>Child profile names, settings and reward stars are stored <strong>only on your own device</strong>.</li>
+      <li>Deleting the app deletes everything.</li>
+    </ul>
+  </div>
+
+  <nav class="toc" aria-label="Contents">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#about">About this policy</a></li>
+      <li><a href="#no-collect">Information we do not collect</a></li>
+      <li><a href="#on-device">Information stored on your device</a></li>
+      <li><a href="#children">Children's privacy</a></li>
+      <li><a href="#tts">Voice narration</a></li>
+      <li><a href="#permissions">Device permissions</a></li>
+      <li><a href="#third-party">Third-party services</a></li>
+      <li><a href="#ads">Advertising and purchases</a></li>
+      <li><a href="#backup">Device backups</a></li>
+      <li><a href="#retention">Retention and deletion</a></li>
+      <li><a href="#security">Security</a></li>
+      <li><a href="#rights">Parents' and guardians' rights</a></li>
+      <li><a href="#changes">Changes to this policy</a></li>
+      <li><a href="#contact">Contact us</a></li>
+    </ol>
+  </nav>
+
+  <h2 id="about"><span class="num">1.</span>About this policy</h2>
+  <p>
+    This Privacy Policy explains how the mobile application <strong>Kiddly</strong>
+    ("the App", "we", "us") handles information. The App is published by
+    <span class="fill">[YOUR NAME OR COMPANY]</span>.
+  </p>
+  <p>
+    Kiddly is a learning and play app designed for children aged approximately
+    one to five years. Because the App is directed at children, we have built it
+    to collect nothing at all. This policy describes that design in full so that
+    parents and guardians can verify it.
+  </p>
+  <p>
+    By installing and using Kiddly, you agree to this policy. If you do not agree
+    with it, please do not use the App.
+  </p>
+
+  <h2 id="no-collect"><span class="num">2.</span>Information we do not collect</h2>
+  <p>
+    Kiddly does <strong>not</strong> collect, transmit, sell, rent, or share any
+    personal information. Specifically, the App does not collect:
+  </p>
+  <ul>
+    <li>Names, email addresses, phone numbers, or postal addresses</li>
+    <li>Photographs, audio recordings, or video</li>
+    <li>Location data of any kind, precise or approximate</li>
+    <li>Contacts, calendars, call logs, or messages</li>
+    <li>Device identifiers, advertising identifiers, or IP addresses</li>
+    <li>Usage analytics, crash reports, behavioural data, or session recordings</li>
+    <li>Payment or financial information</li>
+    <li>Any information that could identify a child or a parent</li>
+  </ul>
+  <p>
+    Kiddly does not request the <code>INTERNET</code> permission on Android. The
+    App has no ability to send data anywhere, because it has no network access.
+  </p>
+
+  <h2 id="on-device"><span class="num">3.</span>Information stored on your device</h2>
+  <p>
+    To remember your child's progress between sessions, Kiddly saves a small
+    amount of information in the App's private storage area on your device. This
+    information never leaves the device and is never transmitted to us or to
+    anyone else.
+  </p>
+  <div class="scroll-x">
+    <table>
+      <thead>
+        <tr>
+          <th>What is stored</th>
+          <th>Why</th>
+          <th>Where it goes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Child profile nickname and avatar choice</td>
+          <td>So more than one child can use the App and keep separate progress</td>
+          <td>Your device only</td>
+        </tr>
+        <tr>
+          <td>Reward counts (stars, rainbows, hearts)</td>
+          <td>So earned rewards are still there next time</td>
+          <td>Your device only</td>
+        </tr>
+        <tr>
+          <td>Sound, music and voice on/off settings</td>
+          <td>To remember your preferences in the Parent Zone</td>
+          <td>Your device only</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Profile nicknames are entered by an adult in the Parent Zone and are entirely
+    optional. We recommend using a first name or a nickname only. This
+    information is stored in the App's own sandboxed storage, is not readable by
+    other apps, and is not sent to any server.
+  </p>
+
+  <h2 id="children"><span class="num">4.</span>Children's privacy</h2>
+  <p>
+    Kiddly is intended for use by young children and is designed to comply with
+    the United States Children's Online Privacy Protection Act (COPPA), the
+    children's provisions of the EU and UK General Data Protection Regulation
+    (GDPR, including Article 8), and Google Play's Families policy requirements.
+  </p>
+  <p>
+    Because Kiddly collects <strong>no personal information whatsoever</strong>,
+    there is no personal data belonging to a child for us to store, process,
+    disclose, or delete. We do not knowingly or unknowingly collect personal
+    information from children, since the App has no mechanism to do so.
+  </p>
+  <p>The App also does not:</p>
+  <ul>
+    <li>Show behavioural, interest-based, or personalised advertising</li>
+    <li>Use tracking technologies, cookies, pixels, or fingerprinting</li>
+    <li>Contain social media features, chat, comments, or user-to-user contact</li>
+    <li>Contain links that lead a child out of the App to a website or store</li>
+    <li>Offer in-app purchases or ask for any payment information</li>
+    <li>Create accounts or require any sign-in</li>
+  </ul>
+  <p>
+    Adult-facing settings are placed behind the <strong>Parent Zone</strong>,
+    which requires a press-and-hold action that a young child is unlikely to
+    complete by accident.
+  </p>
+
+  <h2 id="tts"><span class="num">5.</span>Voice narration</h2>
+  <p>
+    Kiddly speaks letters, numbers, words and encouragement aloud using the
+    <strong>text-to-speech engine already installed on your device</strong>. The
+    App does not record audio and does not use the microphone.
+  </p>
+  <p>
+    The only text passed to the speech engine is fixed, pre-written app
+    content — for example the letter "A", the word "Apple", or "Well done!" — and
+    never a child's profile name or any personal information.
+  </p>
+  <p>
+    Please note that the text-to-speech engine is software provided by your
+    device manufacturer or by another vendor (for example Google
+    Text-to-Speech or Samsung TTS), not by us. Some speech engines may process
+    text on their own servers to produce higher-quality voices, according to
+    their own privacy policies and your device settings. Because Kiddly only ever
+    sends generic learning words, no personal information can be exposed this
+    way. Voice narration can be turned off entirely at any time in the Parent
+    Zone.
+  </p>
+
+  <h2 id="permissions"><span class="num">6.</span>Device permissions</h2>
+  <p>
+    Kiddly requests <strong>no runtime permissions</strong>. It does not ask for
+    access to the camera, microphone, location, storage, contacts, or any other
+    protected part of your device, and it does not request internet access.
+  </p>
+
+  <h2 id="third-party"><span class="num">7.</span>Third-party services</h2>
+  <p>
+    Kiddly contains <strong>no third-party advertising, analytics, attribution,
+    or tracking software development kits (SDKs)</strong>.
+  </p>
+  <p>
+    The App is built with the Flutter framework and uses a small number of
+    open-source software libraries solely to play sounds, speak text through the
+    device's own speech engine, and save settings locally. None of these
+    libraries transmit data off the device as used in Kiddly.
+  </p>
+  <p>
+    If you obtained Kiddly from the Google Play Store, Google's own handling of
+    your download and account is governed by the
+    <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google Privacy Policy</a>,
+    which is independent of this policy and outside our control.
+  </p>
+
+  <h2 id="ads"><span class="num">8.</span>Advertising and purchases</h2>
+  <p>
+    Kiddly contains <strong>no advertisements of any kind</strong> — no banners,
+    no interstitials, no rewarded video, and no cross-promotion of other apps.
+    It contains <strong>no in-app purchases and no subscriptions</strong>, and it
+    will never ask a child or a parent for payment details inside the App.
+  </p>
+
+  <h2 id="backup"><span class="num">9.</span>Device backups</h2>
+  <p>
+    If you have enabled Android's system backup feature on your device, your
+    device's operating system may include Kiddly's locally saved settings and
+    reward counts in your personal device backup. This backup is created and
+    controlled by Google and your device settings, not by us, and we have no
+    access to it. You can disable backups at any time in your device's system
+    settings.
+  </p>
+
+  <h2 id="retention"><span class="num">10.</span>Retention and deletion</h2>
+  <p>
+    Because we hold no data, there is nothing for us to retain or delete on our
+    side. The information described in section 3 stays on your device for as long
+    as the App is installed.
+  </p>
+  <p>You can remove it at any time by:</p>
+  <ul>
+    <li>Deleting individual child profiles inside the Parent Zone; or</li>
+    <li>Clearing the App's data in your device settings
+      (<em>Settings → Apps → Kiddly → Storage → Clear data</em>); or</li>
+    <li>Uninstalling the App, which removes all of its stored data.</li>
+  </ul>
+
+  <h2 id="security"><span class="num">11.</span>Security</h2>
+  <p>
+    All information the App saves is written to Android's private, per-app
+    storage area, which the operating system isolates from other applications.
+    Since no data is ever transmitted over a network, there is no transmission
+    for an attacker to intercept.
+  </p>
+  <p>
+    No method of electronic storage is completely secure, but by keeping
+    everything local and collecting nothing, Kiddly is designed to minimise risk
+    as far as reasonably possible.
+  </p>
+
+  <h2 id="rights"><span class="num">12.</span>Parents' and guardians' rights</h2>
+  <p>
+    Under COPPA, the GDPR, the UK GDPR, and similar laws, parents and guardians
+    have rights to access, correct, and delete personal information collected
+    from their children, and to refuse further collection.
+  </p>
+  <p>
+    Kiddly collects no such information, so these rights are satisfied by design:
+    there is no data held by us to access, correct, or delete, and there is no
+    ongoing collection to refuse. Any information saved locally is fully under
+    your control and can be erased using the steps in section 10.
+  </p>
+  <p>
+    If you have any question about this, please contact us using the details
+    below and we will respond promptly.
+  </p>
+
+  <h2 id="changes"><span class="num">13.</span>Changes to this policy</h2>
+  <p>
+    We may update this Privacy Policy from time to time — for example if a future
+    version of the App adds a new feature. When we do, we will revise the
+    "Last updated" date at the top of this page and publish the new version here.
+  </p>
+  <p>
+    If we ever make a change that materially affects how information about
+    children is handled, we will seek verifiable parental consent where the law
+    requires it, before that change takes effect. We encourage you to review this
+    page occasionally.
+  </p>
+
+  <h2 id="contact"><span class="num">14.</span>Contact us</h2>
+  <p>
+    If you have questions, concerns, or requests regarding this Privacy Policy or
+    the App's privacy practices, please get in touch. We aim to respond within
+    a reasonable period and in any case as required by applicable law.
+  </p>
+  <div class="contact">
+    <p><strong>Kiddly</strong></p>
+    <p>
+      Publisher: <span class="fill">[YOUR NAME OR COMPANY]</span><br>
+      Email: <a href="mailto:[YOUR-EMAIL]"><span class="fill">[YOUR-EMAIL]</span></a><br>
+      Address: <span class="fill">[YOUR ADDRESS OR COUNTRY]</span>
+    </p>
+  </div>
+
+  <footer>
+    <p>© 2026 <span class="fill">[YOUR NAME OR COMPANY]</span>. All rights reserved.</p>
+    <p>Kiddly collects no personal data and works entirely offline.</p>
+  </footer>
+
+</main>
+</body>
+</html>
