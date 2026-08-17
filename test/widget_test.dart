@@ -1,9 +1,12 @@
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:kiddly/core/services/tone_synth.dart';
 import 'package:kiddly/data/content.dart';
+import 'package:kiddly/data/puzzle_pals.dart';
 
 void main() {
   group('content datasets', () {
@@ -37,6 +40,48 @@ void main() {
       // Vehicles encode motion type in `group`.
       for (final v in Content.vehicles) {
         expect(['air', 'ground', 'water'], contains(v.group));
+      }
+    });
+  });
+
+  group('puzzle pals', () {
+    test('every pal has a name, a glyph and at most four props', () {
+      expect(Pals.list, isNotEmpty);
+      for (final p in Pals.list) {
+        expect(p.name, isNotEmpty);
+        expect(p.glyph, isNotEmpty);
+        // The scene only has four prop positions; extras would be dropped.
+        expect(p.decor.length, lessThanOrEqualTo(4));
+      }
+    });
+
+    test('names are unique, so the header never repeats between levels', () {
+      final names = Pals.list.map((p) => p.name).toSet();
+      expect(names.length, Pals.list.length);
+    });
+
+    test('no pal references a bundled image asset', () {
+      // The app ships no third-party artwork — scenes are painted at runtime.
+      // A stray 'assets/…' string here would mean that regressed.
+      for (final p in Pals.list) {
+        expect(p.glyph, isNot(contains('assets/')));
+        for (final d in p.decor) {
+          expect(d, isNot(contains('assets/')));
+        }
+      }
+    });
+
+    test('a scene paints without throwing at every size the puzzle uses', () {
+      // The board, a placed piece, a tray thumbnail and a dragged piece all
+      // paint the same scene at different scales in one frame.
+      for (final p in Pals.list) {
+        final scene = PalScene(p);
+        for (final size in [520.0, 104.0, 156.0]) {
+          final recorder = ui.PictureRecorder();
+          final canvas = Canvas(recorder);
+          scene.paint(canvas, Size(size, size));
+          recorder.endRecording().dispose();
+        }
       }
     });
   });

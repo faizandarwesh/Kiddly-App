@@ -41,6 +41,10 @@ dependencies:
   shared_preferences: ^2.3.3
   # Play runtime-synthesized sound effects (no bundled audio assets).
   audioplayers: ^6.1.0
+  # Open the hosted privacy policy in the device browser. The ONLY outbound
+  # link in the app, and it lives behind the Parent Zone hold-gate — Play's
+  # Families policy requires links out of a kids' app to sit behind such a gate.
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:
@@ -87,7 +91,6 @@ flutter:
 
   assets:
     - assets/images/
-    - assets/images/heroes/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

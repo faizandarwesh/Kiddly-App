@@ -1,9 +1,7 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 
 import '../../core/services/audio_service.dart';
 import '../../core/services/haptics.dart';
@@ -11,13 +9,13 @@ import '../../core/services/profile_service.dart';
 import '../../core/widgets/celebration.dart';
 import '../../core/widgets/round_button.dart';
 import '../../core/widgets/sparkle_burst.dart';
-import '../../data/heroes.dart';
 import '../../data/jigsaw.dart';
+import '../../data/puzzle_pals.dart';
 
-/// A full-screen jigsaw puzzle of a favourite character.
+/// A full-screen jigsaw puzzle of a friendly animal, vehicle or scene.
 /// A faint "ghost" of the finished picture guides the child; pieces are dragged
 /// from the tray onto the board where they snap in with a sparkle. Completing a
-/// hero cheers, then deals the next one — never above [_maxPieces] pieces.
+/// pal cheers, then deals the next one — never above [_maxPieces] pieces.
 class PuzzleScreen extends StatefulWidget {
   const PuzzleScreen({super.key});
 
@@ -38,11 +36,10 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
   final _rng = math.Random();
   int _level = 0;
-  late SuperHero _hero;
-  late HeroScene _scene;
+  late PuzzlePal _pal;
+  late PuzzleScene _scene;
   late JigsawBoard _board;
   final Set<int> _placed = {};
-  final Map<String, ui.Image> _imgCache = {};
 
   @override
   void initState() {
@@ -53,52 +50,27 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   void _deal() {
     final grid = _grids[math.min(_level, _grids.length - 1)];
     assert(grid[0] * grid[1] <= _maxPieces, 'Puzzle grew past $_maxPieces');
-    _hero = Heroes.list[_level % Heroes.list.length];
-    // Show the hero's colors first so the board is never blank, then swap in
-    // the picture as soon as it has decoded.
-    _scene = HeroBackdropScene(_hero);
+    _pal = Pals.list[_level % Pals.list.length];
+    // Scenes are painted, not decoded, so the picture is ready on this frame —
+    // no placeholder backdrop and no hand-off flicker between puzzles.
+    _scene = PalScene(_pal);
     _board = JigsawBoard.generate(grid[0], grid[1], _rng);
     _placed.clear();
     setState(() {});
-    _loadImage(_hero);
-    // Warm the next hero so the hand-off after a win is instant.
-    _decode(Heroes.list[(_level + 1) % Heroes.list.length].imageAsset);
-  }
-
-  Future<void> _loadImage(SuperHero hero) async {
-    final img = await _decode(hero.imageAsset);
-    // Bail if the child already moved to a different hero while we loaded.
-    if (img == null || !mounted || !identical(_hero, hero)) return;
-    setState(() => _scene = ImageHeroScene(hero, img));
-  }
-
-  /// Decodes [asset] once and keeps it, so re-dealing a hero is instant.
-  Future<ui.Image?> _decode(String asset) async {
-    final cached = _imgCache[asset];
-    if (cached != null) return cached;
-    try {
-      final data = await rootBundle.load(asset);
-      final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
-      final img = (await codec.getNextFrame()).image;
-      _imgCache[asset] = img;
-      return img;
-    } catch (_) {
-      return null; // Missing file → keep the plain backdrop.
-    }
   }
 
   Future<void> _place(JigsawPiece piece, Offset dropCenter) async {
     Haptics.pop();
     AudioService.instance.sfx(Sfx.sparkle);
-    SparkleBurst.at(context, dropCenter, color: _hero.accent, count: 16);
+    SparkleBurst.at(context, dropCenter, color: _pal.accent, count: 16);
     setState(() => _placed.add(piece.index));
     ProfileService.instance.awardStars(1);
 
     if (_placed.length == _board.pieces.length) {
-      AudioService.instance.say('You finished ${_hero.name}! Amazing!');
+      AudioService.instance.say('You finished ${_pal.name}! Amazing!');
       await Future.delayed(const Duration(milliseconds: 600));
       if (!mounted) return;
-      Celebration.play(context, say: '${_hero.name} is here!', voice: false);
+      Celebration.play(context, say: '${_pal.name} is here!', voice: false);
       await Future.delayed(const Duration(milliseconds: 1800));
       if (!mounted) return;
       setState(() => _level++);
@@ -123,8 +95,8 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color.lerp(_hero.bg1, Colors.white, 0.35)!,
-              Color.lerp(_hero.bg2, Colors.white, 0.15)!,
+              Color.lerp(_pal.bg1, Colors.white, 0.35)!,
+              Color.lerp(_pal.bg2, Colors.white, 0.15)!,
             ],
           ),
         ),
@@ -148,7 +120,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                     Column(
                       children: [
                         Text(
-                          _hero.name,
+                          _pal.name,
                           style: const TextStyle(
                             fontSize: 26,
                             fontWeight: FontWeight.w900,
@@ -213,7 +185,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
 class _PuzzleBoard extends StatelessWidget {
   final JigsawBoard board;
-  final HeroScene scene;
+  final PuzzleScene scene;
   final Set<int> placed;
   final double size;
   final void Function(JigsawPiece, Offset) onPlace;
@@ -275,7 +247,7 @@ class _PuzzleBoard extends StatelessWidget {
                 child: _Slot(
                   piece: p,
                   placed: placed.contains(p.index),
-                  accent: scene.hero.accent,
+                  accent: scene.pal.accent,
                   onPlace: onPlace,
                 ),
               ),
@@ -332,7 +304,7 @@ class _Slot extends StatelessWidget {
 /// Paints a faded "ghost" of the finished picture plus dashed-free slot
 /// outlines for the pieces not yet placed.
 class _BoardBackPainter extends CustomPainter {
-  final HeroScene scene;
+  final PuzzleScene scene;
   final JigsawBoard board;
   final Set<int> placed;
   _BoardBackPainter(this.scene, this.board, this.placed);
@@ -381,7 +353,7 @@ class _BoardBackPainter extends CustomPainter {
 
 class _PieceView extends StatelessWidget {
   final JigsawPiece piece;
-  final HeroScene scene;
+  final PuzzleScene scene;
   final double factor;
   const _PieceView({
     required this.piece,
@@ -401,7 +373,7 @@ class _PieceView extends StatelessWidget {
 
 class _PiecePainter extends CustomPainter {
   final JigsawPiece piece;
-  final HeroScene scene;
+  final PuzzleScene scene;
   final double factor;
   _PiecePainter(this.piece, this.scene, this.factor);
 
@@ -454,7 +426,7 @@ class _Tray extends StatelessWidget {
   /// The full piece count for this puzzle. Slots are sized from this rather
   /// than from [pieces], so the tray keeps one height as pieces are used up.
   final int total;
-  final HeroScene scene;
+  final PuzzleScene scene;
   const _Tray({required this.pieces, required this.total, required this.scene});
 
   /// Clear of the home indicator / gesture bar, on top of the SafeArea inset.
@@ -533,7 +505,7 @@ class _Tray extends StatelessWidget {
 
 class _DraggablePiece extends StatelessWidget {
   final JigsawPiece piece;
-  final HeroScene scene;
+  final PuzzleScene scene;
 
   /// Side of the square slot this piece is drawn into.
   final double cell;

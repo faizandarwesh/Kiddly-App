@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/services/settings_service.dart';
 import '../../core/services/profile_service.dart';
@@ -180,17 +181,69 @@ class _ProfilesSection extends StatelessWidget {
 class _PrivacyNote extends StatelessWidget {
   const _PrivacyNote();
 
+  /// The hosted policy. Kept in one place so the store listing, the Play
+  /// Console entry and the app can never drift apart.
+  static final Uri _policyUrl =
+      Uri.parse('https://kiddly-privacy-policy.vercel.app/');
+
+  /// Opens the policy in the device's browser rather than an in-app web view.
+  /// [LaunchMode.externalApplication] is deliberate: an embedded web view would
+  /// keep the child inside the app with a browser they cannot navigate out of,
+  /// which is exactly what Play's Families policy asks us to avoid.
+  Future<void> _open(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    // A device with no browser makes launchUrl return false on some platforms
+    // and throw on others — neither should ever crash the Parent Zone, so we
+    // fall back to showing the address for the parent to type in by hand.
+    var ok = false;
+    try {
+      ok = await launchUrl(_policyUrl, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      ok = false;
+    }
+    if (!ok) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Could not open a browser. Visit $_policyUrl')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return _Card(
       title: 'Privacy',
-      child: const Padding(
-        padding: EdgeInsets.all(4),
-        child: Text(
-          'This app is designed for children. It works fully offline, collects '
-          'no personal data, contains no ads, and has no external links or '
-          'purchases. All profiles and progress stay on this device.',
-          style: TextStyle(color: Colors.black54, height: 1.4),
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'This app is designed for children. It works fully offline, '
+              'collects no personal data, contains no ads and no purchases. '
+              'All profiles and progress stay on this device.',
+              style: TextStyle(color: Colors.black54, height: 1.4),
+            ),
+            const SizedBox(height: 14),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: () => _open(context),
+                icon: const Icon(Icons.open_in_new_rounded, size: 18),
+                label: const Text('Read the full Privacy Policy'),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.grape,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 10),
+                  textStyle: const TextStyle(
+                      fontSize: 15, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
+            const Text(
+              'Opens in your browser.',
+              style: TextStyle(color: Colors.black38, fontSize: 12),
+            ),
+          ],
         ),
       ),
     );

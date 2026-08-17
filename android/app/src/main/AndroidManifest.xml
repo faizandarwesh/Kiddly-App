@@ -41,5 +41,23 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+
+        <!-- Required by url_launcher on Android 11+ (API 30) package
+             visibility. Without this the system hides browser apps from us and
+             launching the privacy policy silently fails. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
+        </intent>
+
+        <!-- Required by flutter_tts on Android 11+ (API 30). The speech engine
+             is a service in a separate app (Google Speech Services, Samsung
+             TTS, an OEM engine); without this declaration it can be invisible
+             to us and speak() then fails silently — no crash, no error, just
+             no voice. Voice narration is core to the learning worlds, so we
+             declare it rather than rely on per-OEM default-engine behaviour. -->
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE"/>
+        </intent>
     </queries>
 </manifest>

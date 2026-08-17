@@ -153,25 +153,33 @@ Play rejects debug-signed artifacts outright.
 6. Enroll in **Play App Signing** (default for new apps) so Google holds the
    final app signing key and your upload key stays recoverable.
 
-### 1.3 No hosted privacy policy URL 🚩
+### 1.3 Hosted privacy policy URL — ✅ resolved
 
-The policy text currently lives only inside the app, in the `_PrivacyNote`
-widget in `lib/features/parent/parent_zone_screen.dart`. Play requires a
-**publicly accessible URL**, entered in the Console, for every child-directed
-app — in-app text does not satisfy this.
+**Live URL:** <https://kiddly-privacy-policy.vercel.app/>
 
-**Required action**
+Source page: `docs/privacy-policy.html`. Deployed to Vercel and linked from the
+app.
 
-- A ready-to-host policy has been written to `docs/privacy-policy.html`.
-- Fill in the placeholders marked in that file (developer name, contact email,
-  effective date).
-- Host it. Easiest free option — GitHub Pages from the `docs/` folder:
-  push the repo, then *Settings → Pages → Source: main branch, `/docs` folder*.
-  Resulting URL: `https://<username>.github.io/<repo>/privacy-policy.html`
-- Verify the URL loads publicly in a private browser window, with no login.
-- Enter it in **Play Console → Policy → App content → Privacy policy**, and in
-  the store listing.
-- Optionally link to it from the Parent Zone alongside the existing note.
+**Done**
+
+- Policy written and hosted at a public URL.
+- Linked from the Parent Zone via a "Read the full Privacy Policy" button that
+  opens in the **device browser**, not an in-app web view
+  (`LaunchMode.externalApplication`) — see §2.7.
+
+**Still to do**
+
+- [ ] Replace the remaining placeholders in the hosted page: publisher name,
+      contact email, postal address/country. Play reviewers do check that a
+      policy names an identifiable publisher and a working contact — a policy
+      still reading `[YOUR NAME OR COMPANY]` can fail review on its own.
+- [ ] Enter the URL in **Play Console → Policy → App content → Privacy policy**
+      and in the store listing.
+- [ ] Re-deploy after editing, and confirm the page loads in a private browser
+      window with no login.
+- [ ] Keep the URL stable — if it ever changes, update
+      `_PrivacyNote._policyUrl` in `lib/features/parent/parent_zone_screen.dart`
+      and the Console entry together.
 
 ---
 
@@ -247,7 +255,38 @@ active *before* the keystore exists so it is never committed.
 git init && git add . && git commit -m "Initial commit"
 ```
 
-### 2.6 Confirm version numbers
+### 2.6 Outbound privacy policy link — ✅ implemented, verify on device
+
+The Parent Zone now shows a "Read the full Privacy Policy" button that opens
+<https://kiddly-privacy-policy.vercel.app/> in the **device browser**.
+
+What was added:
+
+- `url_launcher: ^6.3.1` in `pubspec.yaml`
+- `_PrivacyNote._policyUrl` + `_open()` in
+  `lib/features/parent/parent_zone_screen.dart`, using
+  `LaunchMode.externalApplication`
+- A `VIEW` / `https` entry in the `<queries>` block of
+  `android/app/src/main/AndroidManifest.xml` — **mandatory** on Android 11+,
+  or the system hides browser apps and the launch silently fails
+
+Compliance notes — these matter for the Families review:
+
+- **External browser, not an in-app web view.** This is deliberate. An embedded
+  web view would trap a child in a browser with no way back, which Play's
+  Families policy treats as a violation. Do not "improve" this later by
+  switching to a web view or Custom Tab.
+- **The link sits behind the parental gate.** Play permits outbound links in a
+  child-directed app only when they are behind a parental gate — the existing
+  press-and-hold dialog satisfies this. Never surface this or any other link on
+  a screen a child plays on.
+- The privacy policy page and the in-app text were both updated to describe the
+  link accurately; they previously claimed the app had *no* external links.
+
+- [ ] Verify on a physical Android 11+ device that the button opens the system
+      browser and that returning to Kiddly restores the Parent Zone.
+
+### 2.7 Confirm version numbers
 
 `pubspec.yaml` is at `version: 1.0.0+1`. Correct for a first release. Remember
 that **versionCode must strictly increase** on every upload — even for a
@@ -263,13 +302,17 @@ Nothing below has been started yet. All items in §3.1 are mandatory gates.
 
 **Policy → App content**
 
-- [ ] **Privacy policy** — the hosted URL from §1.3
+- [ ] **Privacy policy** — enter `https://kiddly-privacy-policy.vercel.app/`
+      (§1.3), after its placeholders are filled in
 - [ ] **App access** — "All functionality is available without special access";
-      note that the Parent Zone is behind a press-and-hold gate, not a login
+      note that the Parent Zone is behind a press-and-hold gate, not a login.
+      Content rating: answer **yes** to "does the app contain links that take
+      users outside the app" — the Parent Zone policy link does (§2.6)
 - [ ] **Ads** — "No, my app does not contain ads" (accurate; no ad SDKs present)
 - [ ] **Content rating** — complete the IARC questionnaire. Expect *Everyone / 3+*.
       Answer honestly: no violence, no user-generated content, no sharing, no
-      purchases, no location, no external links
+      purchases, no location. The one external link (§2.6) must be declared —
+      it does not affect the rating, but omitting it is a misdeclaration
 - [ ] **Target audience and content** — select the **children's age bands**.
       This is what puts the app into the **Families programme** and triggers
       manual review. Do not attempt to avoid this — the store listing and
@@ -296,6 +339,9 @@ Because the target audience includes children:
       would break compliance
 - [ ] No collection of personal or sensitive data from children — currently
       satisfied
+- [ ] Every link leaving the app must sit behind a parental gate — satisfied by
+      the Parent Zone hold-gate (§2.6). Re-check this if any link is ever added
+- [ ] Links must open in the device browser, not an embedded web view — satisfied
 - [ ] The privacy policy must specifically address children's data (the
       supplied `docs/privacy-policy.html` does)
 - [ ] Interest-based advertising and remarketing to children are prohibited
@@ -369,7 +415,9 @@ Practical guidance:
 2. **Set up release signing** (§1.2), add the **TTS query** (§2.1), and strip
    the **dead assets** (§2.2). Put the repo under git (§2.5) before the keystore
    exists.
-3. **Host the privacy policy** (§1.3) and build a signed AAB:
+3. ~~Host the privacy policy~~ ✅ done (§1.3) — fill in its remaining
+   placeholders, then build a signed AAB:
+
    ```bash
    flutter build appbundle --release
    ```
@@ -392,6 +440,8 @@ Run through this immediately before every AAB upload.
 - [ ] `signingConfigs.getByName("release")` is wired up; no debug signing
 - [ ] `key.properties` and `*.jks` are gitignored and not committed
 - [ ] TTS `<queries>` entry added and narration verified on Android 11+ hardware
+- [ ] Privacy policy button opens the **system browser** (not a web view) on an
+      Android 11+ device, and the URL matches the Console entry
 - [ ] Unused assets removed from `assets/`
 - [ ] `android:allowBackup` set deliberately
 - [ ] versionCode incremented past the last uploaded build
