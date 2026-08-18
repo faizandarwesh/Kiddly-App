@@ -6,12 +6,14 @@ import 'package:flutter/scheduler.dart';
 import '../../core/services/audio_service.dart';
 import '../../core/services/haptics.dart';
 import '../../core/services/profile_service.dart';
+import '../../core/theme/app_colors.dart';
 import '../../core/widgets/round_button.dart';
 import '../../core/widgets/sparkle_burst.dart';
 
-/// Bubble Pop: a calm, endless playground. Colorful bubbles drift up and sway;
-/// tapping one pops it with a sparkle and a soft sound. Pure cause-and-effect
-/// delight for the very youngest — every few pops earns a star.
+/// Bubble Pop: a calm, endless playground that doubles as colour practice.
+/// Bright, saturated bubbles drift up and sway; tapping one pops it with a
+/// sparkle and the friendly voice **names its colour** — "Red!", "Blue!" — so
+/// every pop teaches something. Every few pops earns a star.
 class BubbleScreen extends StatefulWidget {
   const BubbleScreen({super.key});
 
@@ -24,7 +26,7 @@ class _Bubble {
   final double x; // 0..1 base horizontal
   double y; // 0 bottom → 1 top
   final double size;
-  final Color color;
+  final NamedColor color;
   final double speed; // per second
   final double phase;
   final double swayAmp;
@@ -34,15 +36,13 @@ class _Bubble {
 
 class _BubbleScreenState extends State<BubbleScreen>
     with SingleTickerProviderStateMixin {
-  static const _colors = [
-    Color(0xFF4FC3F7),
-    Color(0xFF9575F0),
-    Color(0xFFFF8FC7),
-    Color(0xFF57E0C0),
-    Color(0xFFFFC107),
-    Color(0xFFFF7A6B),
-    Color(0xFF7ED957),
-  ];
+  /// The colours a child can actually name. Pulled straight from the palette
+  /// the Colors world teaches so the two activities reinforce each other;
+  /// black and white are left out — they read as "no colour" against the sky.
+  static final List<NamedColor> _colors = AppColors.namedColors
+      .where((c) => c.name != 'White' && c.name != 'Black')
+      .toList();
+
   static const int _max = 14;
 
   final _rng = math.Random();
@@ -63,12 +63,13 @@ class _BubbleScreenState extends State<BubbleScreen>
     _ticker.start();
   }
 
-  _Bubble _spawn({double startY = -0.12}) {
+  _Bubble _spawn({double startY = -0.14}) {
     return _Bubble(
       _nextId++,
       0.08 + _rng.nextDouble() * 0.84,
       startY,
-      46 + _rng.nextDouble() * 52,
+      // Bigger than before: a toddler's fingertip needs a fat target.
+      64 + _rng.nextDouble() * 56,
       _colors[_rng.nextInt(_colors.length)],
       0.05 + _rng.nextDouble() * 0.09,
       _rng.nextDouble() * math.pi * 2,
@@ -100,7 +101,9 @@ class _BubbleScreenState extends State<BubbleScreen>
   void _pop(_Bubble b, Offset globalPos) {
     Haptics.pop();
     AudioService.instance.sfx(Sfx.pop);
-    SparkleBurst.at(context, globalPos, color: b.color, count: 12);
+    // The whole point: the child hears the colour they just popped.
+    AudioService.instance.say('${b.color.name}!');
+    SparkleBurst.at(context, globalPos, color: b.color.color, count: 12);
     setState(() => _bubbles.removeWhere((x) => x.id == b.id));
     _pops++;
     if (_pops % 5 == 0) {
@@ -112,6 +115,7 @@ class _BubbleScreenState extends State<BubbleScreen>
   @override
   void dispose() {
     _ticker.dispose();
+    AudioService.instance.stopVoice();
     super.dispose();
   }
 
@@ -149,7 +153,10 @@ class _BubbleScreenState extends State<BubbleScreen>
                     RoundButton(
                       icon: Icons.home_rounded,
                       semanticLabel: 'Home',
-                      onTap: () => Navigator.of(context).pop(),
+                      onTap: () {
+                        AudioService.instance.stopVoice();
+                        Navigator.of(context).pop();
+                      },
                     ),
                     const Spacer(),
                     Container(
@@ -192,12 +199,16 @@ class _BubbleScreenState extends State<BubbleScreen>
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTapDown: (d) => _pop(b, d.globalPosition),
-        child: _BubbleBall(color: b.color),
+        child: _BubbleBall(color: b.color.color),
       ),
     );
   }
 }
 
+/// A bright, glossy ball. Deliberately near-opaque: the old translucent
+/// version washed every colour out against the sky, so "the blue one" and
+/// "the purple one" looked the same. Now the colour reads at full strength and
+/// only the highlight is white.
 class _BubbleBall extends StatelessWidget {
   final Color color;
   const _BubbleBall({required this.color});
@@ -208,36 +219,56 @@ class _BubbleBall extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: RadialGradient(
-          center: const Alignment(-0.4, -0.4),
-          radius: 0.95,
+          center: const Alignment(-0.35, -0.4),
+          radius: 1.0,
           colors: [
-            Colors.white.withValues(alpha: 0.9),
-            color.withValues(alpha: 0.45),
-            color.withValues(alpha: 0.28),
+            Color.lerp(color, Colors.white, 0.55)!,
+            color,
+            Color.lerp(color, Colors.black, 0.22)!,
           ],
-          stops: const [0.0, 0.45, 1.0],
+          stops: const [0.0, 0.52, 1.0],
         ),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 2),
+        border: Border.all(
+            color: Colors.white.withValues(alpha: 0.9), width: 3),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: 0.30),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: color.withValues(alpha: 0.45),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
-      child: Align(
-        alignment: const Alignment(-0.35, -0.4),
-        child: FractionallySizedBox(
-          widthFactor: 0.24,
-          heightFactor: 0.24,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.85),
+      child: Stack(
+        children: [
+          // Big soft gleam.
+          Align(
+            alignment: const Alignment(-0.38, -0.45),
+            child: FractionallySizedBox(
+              widthFactor: 0.28,
+              heightFactor: 0.28,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.92),
+                ),
+              ),
             ),
           ),
-        ),
+          // Tiny secondary sparkle, sells the "glass ball" look.
+          Align(
+            alignment: const Alignment(0.15, -0.62),
+            child: FractionallySizedBox(
+              widthFactor: 0.11,
+              heightFactor: 0.11,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.75),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -14,6 +14,7 @@ import '../games/sequence_screen.dart';
 import '../music/music_screen.dart';
 import '../numbers/numbers_screen.dart';
 import '../shapes/shapes_screen.dart';
+import '../sort/sort_screen.dart';
 import '../vehicles/vehicles_screen.dart';
 
 /// A single entry in the home playground grid. Adding a new world is just
@@ -42,4 +43,5 @@ final List<Activity> kActivities = [
   Activity('🧠', 'Memory', AppColors.partyGradients[1], (_) => const SequenceScreen()),
   Activity('🫧', 'Bubbles', AppColors.partyGradients[4], (_) => const BubbleScreen()),
   Activity('🧺', 'Basket', AppColors.partyGradients[5], (_) => const DragDropScreen()),
+  Activity('🧮', 'Sort', AppColors.partyGradients[2], (_) => const SortScreen()),
 ];

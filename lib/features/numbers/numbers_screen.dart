@@ -5,6 +5,7 @@ import '../../core/services/haptics.dart';
 import '../../core/services/profile_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/celebration.dart';
+import '../../core/widgets/activity_header.dart';
 import '../../core/widgets/round_button.dart';
 import '../../data/content.dart';
 
@@ -25,9 +26,17 @@ class NumbersScreen extends StatefulWidget {
 class _NumbersScreenState extends State<NumbersScreen> {
   final _items = Content.numbers;
   int _index = 2; // start at "Three" — a satisfying first count.
-  int _counted = 0;
+
+  /// Which ordinal each tapped object was given: position → 1, 2, 3, …
+  ///
+  /// Counting always runs in ascending order — the *next* number is handed to
+  /// whichever object the child actually touches, rather than being decided by
+  /// that object's position in the row. Tap the last balloon first and it
+  /// becomes "One", exactly as a child counting out loud would expect.
+  final Map<int, int> _counts = {};
 
   int get _number => _index + 1;
+  int get _counted => _counts.length;
 
   @override
   void initState() {
@@ -39,17 +48,19 @@ class _NumbersScreenState extends State<NumbersScreen> {
   void _setNumber(int delta) {
     setState(() {
       _index = (_index + delta).clamp(0, _items.length - 1);
-      _counted = 0;
+      _counts.clear();
     });
     AudioService.instance.say(_items[_index].name);
   }
 
-  void _countOne() {
-    if (_counted >= _number) return;
-    _counted++;
+  void _countOne(int position) {
+    // Already counted, or the whole set is done → nothing to do.
+    if (_counts.containsKey(position) || _counted >= _number) return;
+    final ordinal = _counted + 1; // the next number, always ascending
+    _counts[position] = ordinal;
     Haptics.pop();
     AudioService.instance.sfx(Sfx.pop);
-    AudioService.instance.say(_numberWords[_counted - 1]);
+    AudioService.instance.say(_numberWords[ordinal - 1]);
     if (_counted == _number) {
       Future.delayed(const Duration(milliseconds: 500), () {
         if (!mounted) return;
@@ -75,19 +86,11 @@ class _NumbersScreenState extends State<NumbersScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: Row(
+              ActivityHeader(
+                onHome: () => Navigator.of(context).pop(),
+                titleWidget: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    RoundButton(
-                      icon: Icons.home_rounded,
-                      semanticLabel: 'Home',
-                      onTap: () {
-                        AudioService.instance.stopVoice();
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                    const Spacer(),
                     Text('$_number',
                         style: TextStyle(
                             fontSize: 56,
@@ -97,8 +100,6 @@ class _NumbersScreenState extends State<NumbersScreen> {
                     Text(item.name,
                         style: const TextStyle(
                             fontSize: 32, fontWeight: FontWeight.w800)),
-                    const Spacer(),
-                    const SizedBox(width: 64),
                   ],
                 ),
               ),
@@ -114,8 +115,9 @@ class _NumbersScreenState extends State<NumbersScreen> {
                         for (var i = 0; i < _number; i++)
                           _Countable(
                             glyph: item.glyph,
-                            popped: i < _counted,
-                            onTap: _countOne,
+                            accent: item.accent,
+                            count: _counts[i],
+                            onTap: () => _countOne(i),
                           ),
                       ],
                     ),
@@ -161,41 +163,90 @@ class _NumbersScreenState extends State<NumbersScreen> {
 
 class _Countable extends StatelessWidget {
   final String glyph;
-  final bool popped;
+  final Color accent;
+
+  /// The number this object was given, or null while it is still uncounted.
+  final int? count;
   final VoidCallback onTap;
-  const _Countable(
-      {required this.glyph, required this.popped, required this.onTap});
+  const _Countable({
+    required this.glyph,
+    required this.accent,
+    required this.count,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final counted = count != null;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedScale(
-        scale: popped ? 1.25 : 1.0,
+        scale: counted ? 1.15 : 1.0,
         duration: const Duration(milliseconds: 220),
         curve: Curves.elasticOut,
         child: AnimatedOpacity(
-          opacity: popped ? 1.0 : 0.72,
+          opacity: counted ? 1.0 : 0.72,
           duration: const Duration(milliseconds: 200),
-          child: Container(
-            width: 84,
-            height: 84,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: popped
-                  ? Colors.white
-                  : Colors.white.withValues(alpha: 0.6),
-              shape: BoxShape.circle,
-              boxShadow: popped
-                  ? const [
-                      BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 10,
-                          offset: Offset(0, 4))
-                    ]
-                  : null,
+          child: SizedBox(
+            width: 92,
+            height: 92,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 84,
+                  height: 84,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: counted
+                        ? Colors.white
+                        : Colors.white.withValues(alpha: 0.6),
+                    shape: BoxShape.circle,
+                    boxShadow: counted
+                        ? const [
+                            BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 10,
+                                offset: Offset(0, 4))
+                          ]
+                        : null,
+                  ),
+                  child: Text(glyph, style: const TextStyle(fontSize: 44)),
+                ),
+                // The badge makes the ascending order visible: the child sees
+                // 1, 2, 3 land on the objects they chose, in that order.
+                if (counted)
+                  Positioned(
+                    right: 0,
+                    top: -4,
+                    child: Container(
+                      width: 34,
+                      height: 34,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: accent,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 3),
+                        boxShadow: [
+                          BoxShadow(
+                            color: accent.withValues(alpha: 0.5),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        '$count',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
-            child: Text(glyph, style: const TextStyle(fontSize: 44)),
           ),
         ),
       ),

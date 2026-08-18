@@ -34,6 +34,21 @@ void main() {
       }
     });
 
+    test('animals A-Z has exactly one animal per letter', () {
+      expect(Content.animalsAZ.length, 26);
+      final letters = Content.animalsAZ.map((a) => a.letter).toList();
+      expect(letters.first, 'A');
+      expect(letters.last, 'Z');
+      expect(letters.toSet().length, 26, reason: 'no letter repeats or is skipped');
+      for (final a in Content.animalsAZ) {
+        expect(a.name, isNotEmpty);
+        expect(a.glyph, isNotEmpty);
+        // The voice line teaches the letter and the name together.
+        expect(a.voice, contains(a.letter!));
+        expect(a.voice, contains(a.name));
+      }
+    });
+
     test('fruits and vehicles are populated', () {
       expect(Content.fruits.length, greaterThanOrEqualTo(7));
       expect(Content.vehicles.length, greaterThanOrEqualTo(9));
@@ -105,6 +120,43 @@ void main() {
 
     test('caches identical effects', () {
       expect(identical(ToneSynth.pop(), ToneSynth.pop()), isTrue);
+    });
+
+    test('every instrument renders a valid WAV', () {
+      for (final timbre in Timbre.values) {
+        final wav = ToneSynth.instrument(timbre, 440);
+        expect(wav.length, greaterThan(44), reason: '${timbre.name} is empty');
+        expect(String.fromCharCodes(wav.sublist(0, 4)), 'RIFF');
+      }
+    });
+
+    test('each instrument sounds different at the same pitch', () {
+      // The bug this guards: every instrument played the same sine wave, so
+      // picking a drum or a bell made no audible difference.
+      final samples = <String, List<int>>{
+        for (final t in Timbre.values)
+          t.name: ToneSynth.instrument(t, 440, durationMs: 500).sublist(44),
+      };
+      final names = samples.keys.toList();
+      for (var i = 0; i < names.length; i++) {
+        for (var j = i + 1; j < names.length; j++) {
+          expect(samples[names[i]], isNot(equals(samples[names[j]])),
+              reason: '${names[i]} and ${names[j]} render identical audio');
+        }
+      }
+    });
+
+    test('instruments are cached per timbre, pitch and length', () {
+      expect(
+        identical(ToneSynth.instrument(Timbre.bell, 440),
+            ToneSynth.instrument(Timbre.bell, 440)),
+        isTrue,
+      );
+      expect(
+        identical(ToneSynth.instrument(Timbre.bell, 440),
+            ToneSynth.instrument(Timbre.drum, 440)),
+        isFalse,
+      );
     });
   });
 }

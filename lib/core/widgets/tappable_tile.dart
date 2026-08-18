@@ -70,17 +70,30 @@ class _TappableTileState extends State<TappableTile>
               ),
             ],
           ),
+          // Both children shrink to fit rather than overflow: these tiles sit
+          // in square grid cells whose height varies with the phone, and the
+          // label grows with the parent's text-scale setting.
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(widget.emoji,
-                  style: TextStyle(fontSize: widget.emojiSize)),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(widget.emoji,
+                      style: TextStyle(fontSize: widget.emojiSize)),
+                ),
+              ),
               const SizedBox(height: 4),
-              Text(
-                widget.label,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.w800),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    widget.label,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w800),
+                  ),
+                ),
               ),
             ],
           ),

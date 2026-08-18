@@ -99,6 +99,25 @@ class AudioService {
     }
   }
 
+  /// Play one note in a specific instrument voice (Music playground).
+  Future<void> playInstrument(Timbre timbre, double frequency,
+      {int durationMs = 500}) async {
+    if (!_settings.soundOn) return;
+    try {
+      final player = _sfxPool[_sfxCursor];
+      _sfxCursor = (_sfxCursor + 1) % _sfxPool.length;
+      await player.stop();
+      await player.play(
+        BytesSource(
+            ToneSynth.instrument(timbre, frequency, durationMs: durationMs),
+            mimeType: 'audio/wav'),
+        volume: 1.0,
+      );
+    } catch (e) {
+      debugPrint('instrument failed: $e');
+    }
+  }
+
   void dispose() {
     for (final p in _sfxPool) {
       p.dispose();

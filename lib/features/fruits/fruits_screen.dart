@@ -4,7 +4,7 @@ import '../../core/services/audio_service.dart';
 import '../../core/services/profile_service.dart';
 import '../../core/widgets/animated_gradient.dart';
 import '../../core/widgets/entrance.dart';
-import '../../core/widgets/round_button.dart';
+import '../../core/widgets/activity_header.dart';
 import '../../core/widgets/sparkle_burst.dart';
 import '../../core/widgets/tappable_tile.dart';
 import '../../data/content.dart';
@@ -35,26 +35,9 @@ class _FruitsScreenState extends State<FruitsScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: Row(
-                  children: [
-                    RoundButton(
-                      icon: Icons.home_rounded,
-                      semanticLabel: 'Home',
-                      onTap: () {
-                        AudioService.instance.stopVoice();
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                    const Spacer(),
-                    const Text('Yummy Food',
-                        style: TextStyle(
-                            fontSize: 30, fontWeight: FontWeight.w900)),
-                    const Spacer(),
-                    const SizedBox(width: 64),
-                  ],
-                ),
+              ActivityHeader(
+                title: 'Yummy Food',
+                onHome: () => Navigator.of(context).pop(),
               ),
               Expanded(
                 child: GridView.count(

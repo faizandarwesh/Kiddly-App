@@ -28,6 +28,15 @@ class LearnItem {
   /// An accent color for cards/particles tied to this item.
   final Color accent;
 
+  /// Whether this emoji's artwork points **left**.
+  ///
+  /// Emoji have a fixed, baked-in orientation: in every major emoji font the
+  /// car, bus, fire truck, police car, tractor, helicopter, sailboat and
+  /// aeroplane are all drawn facing left, while the rocket points right and the
+  /// train is head-on. Anything that animates across the screen has to mirror
+  /// the left-facing ones, or the vehicle drives backwards.
+  final bool facesLeft;
+
   const LearnItem({
     required this.glyph,
     required this.name,
@@ -36,6 +45,7 @@ class LearnItem {
     this.number,
     this.group,
     this.accent = const Color(0xFFFFD23F),
+    this.facesLeft = false,
   });
 
   String get voice => spoken ?? name;

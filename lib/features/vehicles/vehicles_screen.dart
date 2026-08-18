@@ -7,7 +7,7 @@ import '../../core/services/haptics.dart';
 import '../../core/services/profile_service.dart';
 import '../../core/widgets/bouncy.dart';
 import '../../core/widgets/floaty.dart';
-import '../../core/widgets/round_button.dart';
+import '../../core/widgets/activity_header.dart';
 import '../../data/content.dart';
 import '../../data/learn_item.dart';
 
@@ -26,12 +26,18 @@ class _VehiclesScreenState extends State<VehiclesScreen>
   final _items = Content.vehicles;
   final Set<String> _seen = {};
 
-  late final AnimationController _drive = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 2600),
-  );
+  late final AnimationController _drive;
 
   LearnItem? _active;
+
+  @override
+  void initState() {
+    super.initState();
+    _drive = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2600),
+    );
+  }
 
   void _launch(LearnItem v) {
     Haptics.pop();
@@ -61,26 +67,9 @@ class _VehiclesScreenState extends State<VehiclesScreen>
         child: SafeArea(
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: Row(
-                  children: [
-                    RoundButton(
-                      icon: Icons.home_rounded,
-                      semanticLabel: 'Home',
-                      onTap: () {
-                        AudioService.instance.stopVoice();
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                    const Spacer(),
-                    const Text('Vehicles',
-                        style: TextStyle(
-                            fontSize: 30, fontWeight: FontWeight.w900)),
-                    const Spacer(),
-                    const SizedBox(width: 64),
-                  ],
-                ),
+              ActivityHeader(
+                title: 'Vehicles',
+                onHome: () => Navigator.of(context).pop(),
               ),
               // The moving stage.
               Expanded(
@@ -130,6 +119,31 @@ class _VehiclesScreenState extends State<VehiclesScreen>
                                     fontSize: 22,
                                     fontWeight: FontWeight.w700,
                                     color: Colors.black45)),
+                          ),
+                        // Name the vehicle that is currently zooming past.
+                        if (_active != null)
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            top: 12,
+                            child: Center(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.85),
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                child: Text(
+                                  _active!.name,
+                                  style: TextStyle(
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.w900,
+                                    color: _active!.accent,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
                       ],
                     );
@@ -187,33 +201,52 @@ class _VehiclesScreenState extends State<VehiclesScreen>
     );
   }
 
+  /// How big the travelling vehicle should be drawn. The stage is mostly empty
+  /// sky, so the vehicle is sized from the stage itself — roughly a third of
+  /// its height — instead of a fixed, tiny 64px.
+  static double _vehicleSize(Size stage) =>
+      (stage.height * 0.38).clamp(120.0, 240.0).toDouble();
+
   /// Places the vehicle emoji along a path appropriate to how it travels.
   Widget _positioned(LearnItem v, double t, Size size) {
-    final x = -80 + t * (size.width + 160);
-    double y;
+    final glyphSize = _vehicleSize(size);
+    // Start and finish fully off-screen, whatever the vehicle's size.
+    final x = -glyphSize + t * (size.width + glyphSize * 2);
+    double y; // vertical centre of the vehicle
     double angle = 0;
     switch (v.group) {
       case 'air':
         // Fly up and across in a gentle arc.
-        y = size.height * 0.5 - math.sin(t * math.pi) * size.height * 0.32;
+        y = size.height * 0.52 - math.sin(t * math.pi) * size.height * 0.30;
         angle = -0.15;
         break;
       case 'water':
         // Bob along a wave near the lower third.
-        y = size.height * 0.62 + math.sin(t * math.pi * 4) * 10;
+        y = size.height * 0.66 + math.sin(t * math.pi * 4) * 12;
         break;
       default: // ground
-        y = size.height * 0.90 - 44;
+        // Sit the wheels on the road line (10% up from the bottom).
+        y = size.height * 0.90 - glyphSize * 0.42;
         // A tiny bounce as it drives.
-        y -= (math.sin(t * math.pi * 8).abs()) * 6;
+        y -= (math.sin(t * math.pi * 8).abs()) * 8;
     }
-    return Positioned(
-      left: x,
-      top: y - 30,
-      child: Transform.rotate(
-        angle: angle,
-        child: Text(v.glyph, style: const TextStyle(fontSize: 64)),
+    Widget art = Transform.rotate(
+      angle: angle,
+      child: SizedBox(
+        width: glyphSize,
+        height: glyphSize,
+        child: FittedBox(
+          child: Text(v.glyph, style: const TextStyle(fontSize: 120)),
+        ),
       ),
     );
+    // Vehicles travel left → right, but most of the emoji are drawn facing
+    // left, so they appeared to drive backwards. Mirror those. The flip sits
+    // *outside* the rotation on purpose: mirroring the whole thing also mirrors
+    // the tilt, which keeps the aeroplane's nose pointing up as it climbs.
+    if (v.facesLeft) {
+      art = Transform.flip(flipX: true, child: art);
+    }
+    return Positioned(left: x, top: y - glyphSize / 2, child: art);
   }
 }

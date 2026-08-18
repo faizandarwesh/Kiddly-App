@@ -128,17 +128,65 @@ class Content {
     LearnItem(glyph: '🍩', name: 'Donut', spoken: 'Yummy donut!', accent: _accent(5)),
   ];
 
-  /// Vehicles. `group` encodes how it moves: air / ground / water.
+  /// Vehicles. `group` encodes how it moves: air / ground / water, and
+  /// `facesLeft` which way the emoji artwork points (see [LearnItem.facesLeft])
+  /// so the Vehicles stage can mirror it to face its direction of travel.
   static final List<LearnItem> vehicles = [
-    LearnItem(glyph: '🚗', name: 'Car', spoken: 'Car. Vroom vroom!', group: 'ground', accent: _accent(0)),
-    LearnItem(glyph: '🚌', name: 'Bus', spoken: 'Bus. Beep beep!', group: 'ground', accent: _accent(2)),
+    LearnItem(glyph: '🚗', name: 'Car', spoken: 'Car. Vroom vroom!', group: 'ground', accent: _accent(0), facesLeft: true),
+    LearnItem(glyph: '🚌', name: 'Bus', spoken: 'Bus. Beep beep!', group: 'ground', accent: _accent(2), facesLeft: true),
+    // Head-on artwork — mirroring it would change nothing.
     LearnItem(glyph: '🚆', name: 'Train', spoken: 'Train. Choo choo!', group: 'ground', accent: _accent(1)),
-    LearnItem(glyph: '🚒', name: 'Fire truck', spoken: 'Fire truck. Wee ooo!', group: 'ground', accent: _accent(0)),
-    LearnItem(glyph: '🚓', name: 'Police car', spoken: 'Police car. Nee naw!', group: 'ground', accent: _accent(1)),
-    LearnItem(glyph: '🚜', name: 'Tractor', spoken: 'Tractor. Brrrm!', group: 'ground', accent: _accent(3)),
-    LearnItem(glyph: '✈️', name: 'Airplane', spoken: 'Airplane. Whoosh!', group: 'air', accent: _accent(1)),
-    LearnItem(glyph: '🚁', name: 'Helicopter', spoken: 'Helicopter. Chop chop!', group: 'air', accent: _accent(4)),
+    LearnItem(glyph: '🚒', name: 'Fire truck', spoken: 'Fire truck. Wee ooo!', group: 'ground', accent: _accent(0), facesLeft: true),
+    LearnItem(glyph: '🚓', name: 'Police car', spoken: 'Police car. Nee naw!', group: 'ground', accent: _accent(1), facesLeft: true),
+    LearnItem(glyph: '🚜', name: 'Tractor', spoken: 'Tractor. Brrrm!', group: 'ground', accent: _accent(3), facesLeft: true),
+    LearnItem(glyph: '✈️', name: 'Airplane', spoken: 'Airplane. Whoosh!', group: 'air', accent: _accent(1), facesLeft: true),
+    LearnItem(glyph: '🚁', name: 'Helicopter', spoken: 'Helicopter. Chop chop!', group: 'air', accent: _accent(4), facesLeft: true),
+    // The only one already drawn pointing right.
     LearnItem(glyph: '🚀', name: 'Rocket', spoken: 'Rocket. Blast off!', group: 'air', accent: _accent(0)),
-    LearnItem(glyph: '⛵', name: 'Boat', spoken: 'Boat. Toot toot!', group: 'water', accent: _accent(1)),
+    LearnItem(glyph: '⛵', name: 'Boat', spoken: 'Boat. Toot toot!', group: 'water', accent: _accent(1), facesLeft: true),
   ];
+
+  /// Animals arranged A–Z — exactly one per letter — for the swipe-through
+  /// deck. Each entry ties the letter to a big picture, the animal's name and
+  /// the noise it makes, so a child learns all three together.
+  static final List<LearnItem> animalsAZ = () {
+    const rows = [
+      ['A', 'Ant', '\u{1F41C}', 'March march!'],
+      ['B', 'Bear', '\u{1F43B}', 'Grrrr!'],
+      ['C', 'Cat', '\u{1F431}', 'Meow!'],
+      ['D', 'Dog', '\u{1F436}', 'Woof woof!'],
+      ['E', 'Elephant', '\u{1F418}', 'Trumpet!'],
+      ['F', 'Frog', '\u{1F438}', 'Ribbit ribbit!'],
+      ['G', 'Giraffe', '\u{1F992}', 'So tall!'],
+      ['H', 'Horse', '\u{1F434}', 'Neigh!'],
+      ['I', 'Iguana', '\u{1F98E}', 'Scurry scurry!'],
+      ['J', 'Jellyfish', '\u{1FABC}', 'Wibble wobble!'],
+      ['K', 'Kangaroo', '\u{1F998}', 'Hop hop!'],
+      ['L', 'Lion', '\u{1F981}', 'Roooar!'],
+      ['M', 'Monkey', '\u{1F435}', 'Ooh ooh ah ah!'],
+      ['N', 'Nightingale', '\u{1F426}', 'Tweet tweet!'],
+      ['O', 'Owl', '\u{1F989}', 'Hoo hoo!'],
+      ['P', 'Panda', '\u{1F43C}', 'Munch munch!'],
+      ['Q', 'Queen bee', '\u{1F41D}', 'Buzz buzz!'],
+      ['R', 'Rabbit', '\u{1F430}', 'Hop hop!'],
+      ['S', 'Snake', '\u{1F40D}', 'Sssssss!'],
+      ['T', 'Tiger', '\u{1F42F}', 'Grrrowl!'],
+      ['U', 'Unicorn', '\u{1F984}', 'Sparkle sparkle!'],
+      ['V', 'Vulture', '\u{1F985}', 'Flap flap!'],
+      ['W', 'Whale', '\u{1F433}', 'Splash!'],
+      ['X', 'X-ray fish', '\u{1F420}', 'Blub blub!'],
+      ['Y', 'Yak', '\u{1F403}', 'Moooo!'],
+      ['Z', 'Zebra', '\u{1F993}', 'Neigh neigh!'],
+    ];
+    var i = 0;
+    return rows.map((r) {
+      return LearnItem(
+        letter: r[0],
+        name: r[1],
+        glyph: r[2],
+        spoken: '${r[0]}. ${r[1]}. ${r[3]}',
+        accent: _accent(i++),
+      );
+    }).toList();
+  }();
 }

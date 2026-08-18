@@ -4,16 +4,23 @@ import 'package:flutter/material.dart';
 
 import '../../core/services/audio_service.dart';
 import '../../core/services/haptics.dart';
+import '../../core/services/tone_synth.dart';
 import '../../core/widgets/animated_gradient.dart';
-import '../../core/widgets/round_button.dart';
+import '../../core/widgets/activity_header.dart';
 import '../../core/widgets/sparkle_burst.dart';
 
-/// Music world: a rainbow xylophone plus a row of fun instruments. Every tap
-/// makes a warm synthesized note (no audio files) and a satisfying visual
-/// bounce + note-burst. Pure digital-toy joy, no lesson.
-class MusicScreen extends StatelessWidget {
+/// Music world: a rainbow xylophone plus a row of instruments. Every instrument
+/// has its own synthesized *voice* (see [Timbre]) — a drum thumps, a bell
+/// rings, a guitar plucks — and picking one also re-voices the whole
+/// xylophone, so the choice is audible everywhere on the screen.
+class MusicScreen extends StatefulWidget {
   const MusicScreen({super.key});
 
+  @override
+  State<MusicScreen> createState() => _MusicScreenState();
+}
+
+class _MusicScreenState extends State<MusicScreen> {
   // C major scale, C4 → C5.
   static const _scale = [
     _Note('C', 261.63, Color(0xFFF14B4B)),
@@ -26,17 +33,54 @@ class MusicScreen extends StatelessWidget {
     _Note('C²', 523.25, Color(0xFFFF8FC7)),
   ];
 
+  /// Each instrument carries its own timbre, its own demo pitch and its own
+  /// note length — a drum is a short thump, a bell rings for a second and a
+  /// half.
   static const _instruments = [
-    _Instrument('🥁', 'Drum', 130.81, 160),
-    _Instrument('🔔', 'Bell', 1046.50, 500),
-    _Instrument('🎸', 'Guitar', 196.00, 500),
-    _Instrument('🎺', 'Trumpet', 349.23, 460),
-    _Instrument('🪈', 'Flute', 587.33, 480),
-    _Instrument('🎹', 'Piano', 261.63, 420),
+    _Instrument('🎼', 'Bars', Timbre.xylophone, 523.25, 500),
+    _Instrument('🥁', 'Drum', Timbre.drum, 90.00, 420),
+    _Instrument('🔔', 'Bell', Timbre.bell, 880.00, 1500),
+    _Instrument('🎸', 'Guitar', Timbre.guitar, 196.00, 1100),
+    _Instrument('🎺', 'Trumpet', Timbre.trumpet, 349.23, 700),
+    _Instrument('🪈', 'Flute', Timbre.flute, 587.33, 900),
+    _Instrument('🎹', 'Piano', Timbre.piano, 261.63, 900),
   ];
+
+  int _selected = 0;
+
+  /// How long a xylophone bar should ring in the currently chosen voice.
+  int get _barLength => switch (_instruments[_selected].timbre) {
+        Timbre.drum => 400,
+        Timbre.bell => 1400,
+        Timbre.guitar => 1000,
+        Timbre.piano => 900,
+        Timbre.flute => 800,
+        Timbre.trumpet => 650,
+        Timbre.xylophone => 500,
+      };
+
+  void _hitBar(_Note note, Offset pos) {
+    Haptics.tap();
+    final ins = _instruments[_selected];
+    // A drum has no pitch to speak of — keep it low and punchy so the bars
+    // still read as a drum kit rather than a squeaky beep.
+    final freq = ins.timbre == Timbre.drum ? note.freq / 3 : note.freq;
+    AudioService.instance
+        .playInstrument(ins.timbre, freq, durationMs: _barLength);
+    SparkleBurst.at(context, pos, color: note.color, count: 8);
+  }
+
+  void _pickInstrument(int i) {
+    Haptics.pop();
+    setState(() => _selected = i);
+    final ins = _instruments[i];
+    AudioService.instance
+        .playInstrument(ins.timbre, ins.demoFreq, durationMs: ins.durationMs);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final ins = _instruments[_selected];
     return Scaffold(
       body: AnimatedGradient(
         palettes: const [
@@ -47,33 +91,30 @@ class MusicScreen extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
+              ActivityHeader(
+                title: 'Music',
+                titleColor: Colors.white,
+                onHome: () => Navigator.of(context).pop(),
+              ),
+              // Which voice the bars are playing right now.
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: Row(
-                  children: [
-                    RoundButton(
-                      icon: Icons.home_rounded,
-                      semanticLabel: 'Home',
-                      onTap: () {
-                        AudioService.instance.stopVoice();
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                    const Spacer(),
-                    const Text('Music',
-                        style: TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white)),
-                    const Spacer(),
-                    const SizedBox(width: 64),
-                  ],
+                padding: const EdgeInsets.only(top: 4),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 220),
+                  child: Text(
+                    '${ins.emoji}  Playing the ${ins.name.toLowerCase()}',
+                    key: ValueKey(_selected),
+                    style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700),
+                  ),
                 ),
               ),
               // Xylophone.
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
@@ -85,6 +126,7 @@ class MusicScreen extends StatelessWidget {
                               note: _scale[i],
                               // Longer bars for lower notes.
                               heightFactor: 1 - i * 0.055,
+                              onHit: _hitBar,
                             ),
                           ),
                         ),
@@ -93,15 +135,23 @@ class MusicScreen extends StatelessWidget {
                 ),
               ),
               // Instruments.
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    for (final ins in _instruments) _InstrumentButton(ins),
-                  ],
+              SizedBox(
+                height: 104,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: _instruments.length,
+                  separatorBuilder: (context, index) => const SizedBox(width: 10),
+                  itemBuilder: (context, i) => Center(
+                    child: _InstrumentButton(
+                      ins: _instruments[i],
+                      selected: i == _selected,
+                      onTap: () => _pickInstrument(i),
+                    ),
+                  ),
                 ),
               ),
+              const SizedBox(height: 12),
             ],
           ),
         ),
@@ -120,15 +170,24 @@ class _Note {
 class _Instrument {
   final String emoji;
   final String name;
-  final double freq;
+  final Timbre timbre;
+
+  /// The pitch played when the instrument itself is tapped.
+  final double demoFreq;
   final int durationMs;
-  const _Instrument(this.emoji, this.name, this.freq, this.durationMs);
+  const _Instrument(
+      this.emoji, this.name, this.timbre, this.demoFreq, this.durationMs);
 }
 
 class _Bar extends StatefulWidget {
   final _Note note;
   final double heightFactor;
-  const _Bar({required this.note, required this.heightFactor});
+  final void Function(_Note note, Offset globalPosition) onHit;
+  const _Bar({
+    required this.note,
+    required this.heightFactor,
+    required this.onHit,
+  });
 
   @override
   State<_Bar> createState() => _BarState();
@@ -141,9 +200,7 @@ class _BarState extends State<_Bar> with SingleTickerProviderStateMixin {
   );
 
   void _hit(Offset pos) {
-    Haptics.tap();
-    AudioService.instance.playNote(widget.note.freq, durationMs: 500);
-    SparkleBurst.at(context, pos, color: widget.note.color, count: 8);
+    widget.onHit(widget.note, pos);
     _c.forward(from: 0);
   }
 
@@ -206,7 +263,13 @@ class _BarState extends State<_Bar> with SingleTickerProviderStateMixin {
 
 class _InstrumentButton extends StatefulWidget {
   final _Instrument ins;
-  const _InstrumentButton(this.ins);
+  final bool selected;
+  final VoidCallback onTap;
+  const _InstrumentButton({
+    required this.ins,
+    required this.selected,
+    required this.onTap,
+  });
 
   @override
   State<_InstrumentButton> createState() => _InstrumentButtonState();
@@ -219,11 +282,10 @@ class _InstrumentButtonState extends State<_InstrumentButton>
     duration: const Duration(milliseconds: 400),
   );
 
-  void _hit() {
-    Haptics.pop();
-    AudioService.instance
-        .playNote(widget.ins.freq, durationMs: widget.ins.durationMs);
-    _c.forward(from: 0);
+  @override
+  void didUpdateWidget(covariant _InstrumentButton old) {
+    super.didUpdateWidget(old);
+    if (widget.selected && !old.selected) _c.forward(from: 0);
   }
 
   @override
@@ -235,7 +297,10 @@ class _InstrumentButtonState extends State<_InstrumentButton>
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: _hit,
+      onTap: () {
+        _c.forward(from: 0);
+        widget.onTap();
+      },
       child: AnimatedBuilder(
         animation: _c,
         builder: (context, child) {
@@ -248,24 +313,37 @@ class _InstrumentButtonState extends State<_InstrumentButton>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 56,
-              height: 56,
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              width: 64,
+              height: 64,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.14),
+                color: widget.selected
+                    ? Colors.white.withValues(alpha: 0.92)
+                    : Colors.white.withValues(alpha: 0.14),
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white24, width: 2),
+                border: Border.all(
+                  color: widget.selected ? Colors.white : Colors.white24,
+                  width: widget.selected ? 4 : 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.white
+                        .withValues(alpha: widget.selected ? 0.5 : 0.0),
+                    blurRadius: 16,
+                  ),
+                ],
               ),
               child:
-                  Text(widget.ins.emoji, style: const TextStyle(fontSize: 30)),
+                  Text(widget.ins.emoji, style: const TextStyle(fontSize: 34)),
             ),
             const SizedBox(height: 4),
             Text(widget.ins.name,
-                style: const TextStyle(
-                    color: Colors.white70,
+                style: TextStyle(
+                    color: widget.selected ? Colors.white : Colors.white70,
                     fontSize: 12,
-                    fontWeight: FontWeight.w700)),
+                    fontWeight: FontWeight.w800)),
           ],
         ),
       ),
